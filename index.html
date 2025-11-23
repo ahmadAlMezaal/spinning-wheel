@@ -1,578 +1,767 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mystic Decision Wheel</title>
+    <!-- Favicon: A Crystal Ball Emoji embedded as an SVG -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔮</text></svg>"
+    />
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@400;600&display=swap');
+      @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@400;600&display=swap");
 
-        body {
-            font-family: 'Quicksand', sans-serif;
-            background-color: #0f172a;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(76, 29, 149, 0.3) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.3) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.3) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: #e2e8f0;
-            overflow-x: hidden;
-        }
+      body {
+        font-family: "Quicksand", sans-serif;
+        background-color: #0f172a;
+        background-image: radial-gradient(
+            at 0% 0%,
+            rgba(76, 29, 149, 0.3) 0px,
+            transparent 50%
+          ),
+          radial-gradient(
+            at 100% 0%,
+            rgba(236, 72, 153, 0.3) 0px,
+            transparent 50%
+          ),
+          radial-gradient(
+            at 100% 100%,
+            rgba(56, 189, 248, 0.3) 0px,
+            transparent 50%
+          );
+        background-attachment: fixed;
+        color: #e2e8f0;
+        overflow-x: hidden;
+      }
 
-        h1, h2, .magic-font {
-            font-family: 'Cinzel', serif;
-        }
+      h1,
+      h2,
+      h3,
+      .magic-font {
+        font-family: "Cinzel", serif;
+      }
 
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
+      .glass-panel {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      }
 
-        /* Glow Animation for the Button */
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.5); }
-            50% { box-shadow: 0 0 25px rgba(139, 92, 246, 0.8), 0 0 5px rgba(255, 255, 255, 0.5); }
+      /* Glow Animation for the Button */
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
         }
+        50% {
+          box-shadow: 0 0 25px rgba(139, 92, 246, 0.8),
+            0 0 5px rgba(255, 255, 255, 0.5);
+        }
+      }
 
-        .btn-magic {
-            background: linear-gradient(45deg, #7c3aed, #db2777);
-            transition: all 0.3s ease;
-            animation: pulse-glow 3s infinite;
-        }
-        .btn-magic:hover {
-            transform: scale(1.02) translateY(-1px);
-            filter: brightness(1.2);
-        }
-        .btn-magic:active {
-            transform: scale(0.98);
-        }
+      .btn-magic {
+        background: linear-gradient(45deg, #7c3aed, #db2777);
+        transition: all 0.3s ease;
+        animation: pulse-glow 3s infinite;
+      }
+      .btn-magic:hover {
+        transform: scale(1.02) translateY(-1px);
+        filter: brightness(1.2);
+      }
+      .btn-magic:active {
+        transform: scale(0.98);
+      }
 
-        #canvas-container {
-            position: relative;
-            filter: drop-shadow(0 0 20px rgba(124, 58, 237, 0.3));
-        }
+      #canvas-container {
+        position: relative;
+        filter: drop-shadow(0 0 20px rgba(124, 58, 237, 0.3));
+      }
 
-        .pointer-wrapper {
-            position: absolute;
-            top: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
-            transform-origin: 50% 20px; /* Pivot point for the kicker */
-        }
+      .pointer-wrapper {
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+        transform-origin: 50% 20px; /* Pivot point for the kicker */
+      }
 
-        /* Chip Styles */
-        .choice-chip {
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      /* Chip Styles */
+      .choice-chip {
+        animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes popIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
         }
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1); }
+        to {
+          opacity: 1;
+          transform: scale(1);
         }
+      }
 
-        /* Custom Toggle Switch */
-        .toggle-checkbox:checked {
-            right: 0;
-            border-color: #a855f7;
-        }
-        .toggle-checkbox:checked + .toggle-label {
-            background-color: #a855f7;
-        }
+      /* Custom Toggle Switch */
+      .toggle-checkbox:checked {
+        right: 0;
+        border-color: #a855f7;
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        background-color: #a855f7;
+      }
     </style>
-</head>
-<body class="min-h-screen flex flex-col items-center py-6 px-4">
-
+  </head>
+  <body class="min-h-screen flex flex-col items-center py-6 px-4">
     <!-- Header -->
     <header class="text-center mb-6 relative z-10">
-        <h1 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 mb-2" style="text-shadow: 0 0 30px rgba(168, 85, 247, 0.4);">
-            Mystic Wheel
-        </h1>
+      <h1
+        class="text-4xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 mb-2"
+        style="text-shadow: 0 0 30px rgba(168, 85, 247, 0.4)"
+      >
+        Mystic Wheel
+      </h1>
+      <p class="text-slate-400 italic">The cosmos knows the answer...</p>
     </header>
 
-    <main class="w-full max-w-6xl flex flex-col lg:flex-row gap-6 items-start justify-center flex-grow">
-        
-        <!-- Input Panel -->
-        <div class="glass-panel rounded-2xl p-6 w-full lg:w-1/3 flex flex-col gap-4 min-h-[500px]">
-            
-            <!-- Presets -->
-            <div class="flex gap-2 justify-center mb-2 overflow-x-auto pb-2">
-                <button onclick="loadPreset('food')" class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600">🍔 Food</button>
-                <button onclick="loadPreset('yesno')" class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600">🔮 Yes/No</button>
-                <button onclick="loadPreset('dice')" class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600">🎲 D20</button>
-            </div>
-
-            <div class="relative">
-                <input type="text" id="new-choice" 
-                    class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-4 pr-12 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-bold" 
-                    placeholder="Type a choice & hit Enter..."
-                    onkeydown="handleInput(event)">
-                <button onclick="addChoice()" class="absolute right-2 top-2 bottom-2 px-3 text-purple-400 hover:text-white hover:bg-purple-600 rounded-lg transition">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-
-            <!-- List of Choices -->
-            <div id="choice-list" class="flex-grow overflow-y-auto max-h-[300px] flex flex-wrap content-start gap-2 p-2 bg-slate-900/30 rounded-xl border border-white/5">
-                <!-- Chips injected here -->
-            </div>
-
-            <!-- Options -->
-            <div class="flex items-center justify-between bg-slate-800/40 p-3 rounded-lg">
-                <span class="text-sm text-slate-300"><i class="fas fa-skull mr-2"></i>Remove Winner</span>
-                <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
-                    <input type="checkbox" name="toggle" id="battle-mode" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                    <label for="toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
-                </div>
-            </div>
-            
-            <div class="flex gap-2 mt-auto pt-4">
-                <button onclick="clearChoices()" class="px-4 py-3 rounded-lg border border-slate-500 hover:bg-red-500/20 hover:border-red-400 text-slate-300 hover:text-red-200 transition-colors">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <button id="spin-btn" class="btn-magic flex-grow py-3 rounded-lg font-bold text-white text-lg tracking-wider uppercase shadow-lg flex items-center justify-center gap-2">
-                    <span>Cast to Fate</span>
-                    <i class="fas fa-sparkles"></i>
-                </button>
-            </div>
+    <main
+      class="w-full max-w-6xl flex flex-col lg:flex-row gap-8 items-start justify-center flex-grow"
+    >
+      <!-- Input Panel -->
+      <div
+        class="glass-panel rounded-2xl p-6 w-full lg:w-1/3 flex flex-col gap-4 min-h-[500px]"
+      >
+        <!-- Presets -->
+        <div class="flex gap-2 justify-center mb-2 overflow-x-auto pb-2">
+          <button
+            onclick="loadPreset('food')"
+            class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
+          >
+            🍔 Food
+          </button>
+          <button
+            onclick="loadPreset('yesno')"
+            class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
+          >
+            🔮 Yes/No
+          </button>
+          <button
+            onclick="loadPreset('dice')"
+            class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
+          >
+            🎲 D20
+          </button>
+          <button
+            onclick="loadPreset('activity')"
+            class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
+          >
+            🏃 Activity
+          </button>
         </div>
 
-        <!-- Wheel Area -->
-        <div class="relative flex-grow flex justify-center items-center p-4" id="canvas-container">
-            <!-- The Golden Pointer (Animated) -->
-            <div class="pointer-wrapper" id="pointer">
-                <svg width="50" height="60" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#FDE68A" />
-                            <stop offset="50%" stop-color="#D97706" />
-                            <stop offset="100%" stop-color="#92400E" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M20 55L5 15L20 0L35 15L20 55Z" fill="url(#goldGrad)" stroke="#78350F" stroke-width="1.5"/>
-                    <circle cx="20" cy="15" r="6" fill="#451a03" stroke="#FBBF24" stroke-width="2"/>
-                    <circle cx="20" cy="15" r="2" fill="#FBBF24"/>
-                </svg>
-            </div>
-            <canvas id="wheel" width="600" height="600" class="max-w-full h-auto"></canvas>
+        <div class="relative">
+          <input
+            type="text"
+            id="new-choice"
+            class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-4 pr-12 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-bold"
+            placeholder="Type & hit Enter..."
+            onkeydown="handleInput(event)"
+          />
+          <button
+            onclick="addChoice()"
+            class="absolute right-2 top-2 bottom-2 px-3 text-purple-400 hover:text-white hover:bg-purple-600 rounded-lg transition"
+          >
+            <i class="fas fa-plus"></i>
+          </button>
         </div>
 
+        <!-- List of Choices -->
+        <div
+          id="choice-list"
+          class="flex-grow overflow-y-auto max-h-[300px] flex flex-wrap content-start gap-2 p-2 bg-slate-900/30 rounded-xl border border-white/5"
+        >
+          <!-- Chips injected here -->
+        </div>
+
+        <!-- Options -->
+        <div
+          class="flex items-center justify-between bg-slate-800/40 p-3 rounded-lg"
+        >
+          <span class="text-sm text-slate-300"
+            ><i class="fas fa-skull mr-2"></i>Remove Winner</span
+          >
+          <div
+            class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+          >
+            <input
+              type="checkbox"
+              name="toggle"
+              id="battle-mode"
+              class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+            />
+            <label
+              for="toggle"
+              class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"
+            ></label>
+          </div>
+        </div>
+
+        <div class="flex gap-2 mt-auto pt-4">
+          <button
+            onclick="clearChoices()"
+            class="px-4 py-3 rounded-lg border border-slate-500 hover:bg-red-500/20 hover:border-red-400 text-slate-300 hover:text-red-200 transition-colors"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+          <button
+            id="spin-btn"
+            class="btn-magic flex-grow py-3 rounded-lg font-bold text-white text-lg tracking-wider uppercase shadow-lg flex items-center justify-center gap-2"
+          >
+            <span>Cast to Fate</span>
+            <i class="fas fa-sparkles"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Wheel Area -->
+      <div
+        class="relative flex-grow flex flex-col justify-center items-center p-4"
+        id="canvas-container"
+      >
+        <div class="pointer-wrapper" id="pointer">
+          <svg
+            width="50"
+            height="60"
+            viewBox="0 0 40 50"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#FDE68A" />
+                <stop offset="50%" stop-color="#D97706" />
+                <stop offset="100%" stop-color="#92400E" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M20 55L5 15L20 0L35 15L20 55Z"
+              fill="url(#goldGrad)"
+              stroke="#78350F"
+              stroke-width="1.5"
+            />
+            <circle
+              cx="20"
+              cy="15"
+              r="6"
+              fill="#451a03"
+              stroke="#FBBF24"
+              stroke-width="2"
+            />
+            <circle cx="20" cy="15" r="2" fill="#FBBF24" />
+          </svg>
+        </div>
+        <canvas
+          id="wheel"
+          width="600"
+          height="600"
+          class="max-w-full h-auto"
+        ></canvas>
+      </div>
     </main>
 
-    <!-- Result Modal -->
-    <div id="result-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-500">
-        <div class="glass-panel p-8 rounded-2xl text-center max-w-md mx-4 transform scale-90 transition-transform duration-500 border-t-4 border-purple-500" id="result-content">
-            <h2 class="text-xl text-purple-300 mb-2 magic-font tracking-widest">DESTINY CHOSEN</h2>
-            <div id="winner-text" class="text-4xl md:text-5xl font-bold text-white my-8 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] break-words">
-                Result
-            </div>
-            <button onclick="closeModal()" class="bg-white text-purple-900 hover:bg-purple-100 font-bold px-10 py-3 rounded-full transition-all transform hover:scale-105 shadow-lg">
-                Accept
-            </button>
+    <!-- Instructional / Lore Footer -->
+    <section
+      class="max-w-4xl mx-auto mt-12 mb-8 px-6 text-center text-slate-400"
+    >
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="glass-panel p-4 rounded-xl">
+          <h3 class="text-purple-300 mb-2 magic-font">The Oracle</h3>
+          <p class="text-sm">
+            Unsure of your path? Enter your choices above. The wheel spins with
+            the weight of destiny, governed by physics and randomness.
+          </p>
         </div>
+        <div class="glass-panel p-4 rounded-xl">
+          <h3 class="text-purple-300 mb-2 magic-font">Battle Mode</h3>
+          <p class="text-sm">
+            Enable "Remove Winner" to play a game of elimination. The chosen
+            fate vanishes, leaving the survivors to spin again.
+          </p>
+        </div>
+        <div class="glass-panel p-4 rounded-xl">
+          <h3 class="text-purple-300 mb-2 magic-font">Presets</h3>
+          <p class="text-sm">
+            Short on time? Use the magical runes (buttons) above the input box
+            to instantly load common dilemmas.
+          </p>
+        </div>
+      </div>
+      <p class="mt-8 text-xs opacity-50">Crafted with Stardust & Code.</p>
+    </section>
+
+    <!-- Result Modal -->
+    <div
+      id="result-modal"
+      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-500"
+    >
+      <div
+        class="glass-panel p-8 rounded-2xl text-center max-w-md mx-4 transform scale-90 transition-transform duration-500 border-t-4 border-purple-500"
+        id="result-content"
+      >
+        <h2 class="text-xl text-purple-300 mb-2 magic-font tracking-widest">
+          DESTINY CHOSEN
+        </h2>
+        <div
+          id="winner-text"
+          class="text-4xl md:text-5xl font-bold text-white my-8 drop-shadow-[0_0_15px_rgba(168,85,247,0.8)] break-words"
+        >
+          Result
+        </div>
+        <button
+          onclick="closeModal()"
+          class="bg-white text-purple-900 hover:bg-purple-100 font-bold px-10 py-3 rounded-full transition-all transform hover:scale-105 shadow-lg"
+        >
+          Accept
+        </button>
+      </div>
     </div>
 
     <script>
-        // --- Configuration ---
-        const canvas = document.getElementById('wheel');
-        const ctx = canvas.getContext('2d');
-        const input = document.getElementById('new-choice');
-        const listContainer = document.getElementById('choice-list');
-        const spinBtn = document.getElementById('spin-btn');
-        const modal = document.getElementById('result-modal');
-        const modalContent = document.getElementById('result-content');
-        const winnerText = document.getElementById('winner-text');
-        const pointer = document.getElementById('pointer');
-        const battleMode = document.getElementById('battle-mode');
+      // --- Configuration ---
+      const canvas = document.getElementById("wheel");
+      const ctx = canvas.getContext("2d");
+      const input = document.getElementById("new-choice");
+      const listContainer = document.getElementById("choice-list");
+      const spinBtn = document.getElementById("spin-btn");
+      const modal = document.getElementById("result-modal");
+      const modalContent = document.getElementById("result-content");
+      const winnerText = document.getElementById("winner-text");
+      const pointer = document.getElementById("pointer");
+      const battleMode = document.getElementById("battle-mode");
 
-        // Palette for the segments (Magical Neon Tones)
-        const colors = [
-            '#C026D3', // Fuchsia
-            '#4F46E5', // Indigo
-            '#0891B2', // Cyan
-            '#059669', // Emerald
-            '#D97706', // Amber
-            '#E11D48', // Rose
-            '#7C3AED'  // Violet
-        ];
+      // Palette for the segments (Magical Neon Tones)
+      const colors = [
+        "#C026D3", // Fuchsia
+        "#4F46E5", // Indigo
+        "#0891B2", // Cyan
+        "#059669", // Emerald
+        "#D97706", // Amber
+        "#E11D48", // Rose
+        "#7C3AED", // Violet
+      ];
 
-        let items = ['Pizza', 'Sushi', 'Tacos', 'Burgers']; // Default
-        let currentAngle = 0;
-        let isSpinning = false;
-        let spinVelocity = 0;
-        let spinDeceleration = 0.990; // Smoother, longer spin
-        let lastSegmentIndex = -1;
-        let pointerAngle = 0; // For the kicker animation
-        
-        // Sound Context
-        let audioCtx = null;
+      let items = ["Pizza", "Sushi", "Tacos", "Burgers"]; // Default
+      let currentAngle = 0;
+      let isSpinning = false;
+      let spinVelocity = 0;
+      let spinDeceleration = 0.99; // Smoother, longer spin
+      let lastSegmentIndex = -1;
+      let pointerAngle = 0; // For the kicker animation
 
-        // --- Initialization ---
-        
-        function init() {
-            renderList();
-            drawWheel();
-            loop();
-            
-            // Mobile responsiveness for canvas
-            resizeCanvas();
-            window.addEventListener('resize', resizeCanvas);
+      // Sound Context
+      let audioCtx = null;
+
+      // --- Initialization ---
+
+      function init() {
+        renderList();
+        drawWheel();
+        loop();
+
+        // Mobile responsiveness for canvas
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
+      }
+
+      function resizeCanvas() {
+        // We keep canvas resolution high (600) but CSS scales it down
+      }
+
+      // --- List Management ---
+
+      function handleInput(e) {
+        if (e.key === "Enter") addChoice();
+      }
+
+      function addChoice() {
+        const val = input.value.trim();
+        if (val) {
+          items.push(val);
+          input.value = "";
+          renderList();
+          drawWheel();
+          playPopSound();
+        }
+        input.focus();
+      }
+
+      function removeChoice(index) {
+        if (isSpinning) return;
+        items.splice(index, 1);
+        renderList();
+        drawWheel();
+      }
+
+      function clearChoices() {
+        if (isSpinning) return;
+        items = [];
+        renderList();
+        drawWheel();
+      }
+
+      function loadPreset(type) {
+        if (isSpinning) return;
+        if (type === "food")
+          items = [
+            "Pizza",
+            "Sushi",
+            "Burgers",
+            "Salad",
+            "Tacos",
+            "Pasta",
+            "Curry",
+          ];
+        if (type === "yesno") items = ["Yes", "No", "Definitely", "Nope"];
+        if (type === "dice")
+          items = Array.from({ length: 20 }, (_, i) => (i + 1).toString());
+        if (type === "activity")
+          items = [
+            "Watch a Movie",
+            "Read a Book",
+            "Go for a Walk",
+            "Code",
+            "Sleep",
+            "Clean Room",
+          ];
+        renderList();
+        drawWheel();
+      }
+
+      function renderList() {
+        listContainer.innerHTML = "";
+        if (items.length === 0) {
+          listContainer.innerHTML =
+            '<p class="text-slate-500 text-center w-full mt-4 italic">The void is empty...</p>';
+          return;
         }
 
-        function resizeCanvas() {
-             // We keep canvas resolution high (600) but CSS scales it down
-        }
-
-        // --- List Management ---
-
-        function handleInput(e) {
-            if (e.key === 'Enter') addChoice();
-        }
-
-        function addChoice() {
-            const val = input.value.trim();
-            if (val) {
-                items.push(val);
-                input.value = '';
-                renderList();
-                drawWheel();
-                playPopSound();
-            }
-            input.focus();
-        }
-
-        function removeChoice(index) {
-            if (isSpinning) return;
-            items.splice(index, 1);
-            renderList();
-            drawWheel();
-        }
-
-        function clearChoices() {
-            if (isSpinning) return;
-            items = [];
-            renderList();
-            drawWheel();
-        }
-
-        function loadPreset(type) {
-            if(isSpinning) return;
-            if (type === 'food') items = ['Pizza', 'Sushi', 'Burgers', 'Salad', 'Tacos', 'Pasta', 'Curry'];
-            if (type === 'yesno') items = ['Yes', 'No', 'Definitely', 'Nope'];
-            if (type === 'dice') items = Array.from({length: 20}, (_, i) => (i + 1).toString());
-            renderList();
-            drawWheel();
-        }
-
-        function renderList() {
-            listContainer.innerHTML = '';
-            if (items.length === 0) {
-                listContainer.innerHTML = '<p class="text-slate-500 text-center w-full mt-4 italic">The void is empty...</p>';
-                return;
-            }
-
-            items.forEach((item, index) => {
-                const chip = document.createElement('div');
-                chip.className = 'choice-chip bg-slate-700 text-white px-3 py-1 rounded-full flex items-center gap-2 text-sm border border-slate-600 shadow-sm';
-                chip.innerHTML = `
+        items.forEach((item, index) => {
+          const chip = document.createElement("div");
+          chip.className =
+            "choice-chip bg-slate-700 text-white px-3 py-1 rounded-full flex items-center gap-2 text-sm border border-slate-600 shadow-sm";
+          chip.innerHTML = `
                     <span>${item}</span>
                     <button onclick="removeChoice(${index})" class="text-slate-400 hover:text-red-400 transition"><i class="fas fa-times"></i></button>
                 `;
-                listContainer.appendChild(chip);
-            });
+          listContainer.appendChild(chip);
+        });
+      }
+
+      // --- Audio & effects ---
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
+      }
 
-        // --- Audio & effects ---
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
+      function playPopSound() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(
+          100,
+          audioCtx.currentTime + 0.1
+        );
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.001,
+          audioCtx.currentTime + 0.1
+        );
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.1);
+      }
 
-        function playPopSound() {
-            if(!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.1);
-        }
+      function playTick() {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        // Wood block / mechanical click
+        osc.type = "square";
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(
+          40,
+          audioCtx.currentTime + 0.03
+        );
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(
+          0.001,
+          audioCtx.currentTime + 0.03
+        );
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.05);
+      }
 
-        function playTick() {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            // Wood block / mechanical click
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.03);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.05);
-        }
+      function playWinSound() {
+        if (!audioCtx) return;
+        const now = audioCtx.currentTime;
+        // Magical harp sweep
+        const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+        notes.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, now + i * 0.05);
+          gain.gain.linearRampToValueAtTime(0.2, now + 0.1 + i * 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(now + 3);
+        });
+      }
 
-        function playWinSound() {
-            if (!audioCtx) return;
-            const now = audioCtx.currentTime;
-            // Magical harp sweep
-            const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-            notes.forEach((freq, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
-                gain.gain.setValueAtTime(0, now + (i * 0.05));
-                gain.gain.linearRampToValueAtTime(0.2, now + 0.1 + (i * 0.05));
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(now + 3);
-            });
-        }
+      // --- Rendering ---
 
-        // --- Rendering ---
+      function drawWheel() {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 280;
 
-        function drawWheel() {
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = 280;
-            
-            // Handle empty state
-            const drawItems = items.length > 0 ? items : ['?'];
-            const arcSize = (2 * Math.PI) / drawItems.length;
+        // Handle empty state
+        const drawItems = items.length > 0 ? items : ["?"];
+        const arcSize = (2 * Math.PI) / drawItems.length;
 
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Outer Rim
-            ctx.save();
-            ctx.shadowBlur = 25;
-            ctx.shadowColor = '#a855f7'; 
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius + 8, 0, 2 * Math.PI);
-            ctx.fillStyle = '#1e293b';
-            ctx.fill();
-            ctx.strokeStyle = '#fbbf24'; // Gold rim
-            ctx.lineWidth = 8;
-            ctx.stroke();
-            ctx.restore();
+        // Outer Rim
+        ctx.save();
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = "#a855f7";
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius + 8, 0, 2 * Math.PI);
+        ctx.fillStyle = "#1e293b";
+        ctx.fill();
+        ctx.strokeStyle = "#fbbf24"; // Gold rim
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        ctx.restore();
 
-            drawItems.forEach((item, index) => {
-                const startAngle = currentAngle + (index * arcSize);
-                const endAngle = startAngle + arcSize;
+        drawItems.forEach((item, index) => {
+          const startAngle = currentAngle + index * arcSize;
+          const endAngle = startAngle + arcSize;
 
-                ctx.save();
-                
-                // Slice
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                ctx.closePath();
-                ctx.fillStyle = colors[index % colors.length];
-                ctx.fill();
-                
-                // Segment Border
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(255,255,255,0.1)";
-                ctx.stroke();
+          ctx.save();
 
-                // Text
-                ctx.translate(centerX, centerY);
-                ctx.rotate(startAngle + arcSize / 2);
-                ctx.textAlign = "right";
-                ctx.fillStyle = "#fff";
-                ctx.font = "bold 24px Quicksand";
-                ctx.shadowColor = "rgba(0,0,0,0.8)";
-                ctx.shadowBlur = 4;
-                
-                let text = item;
-                if (text.length > 18) text = text.substring(0, 16) + '...';
-                ctx.fillText(text, radius - 30, 8);
-                
-                ctx.restore();
-            });
-            
-            // Center Hub (Gold & Gem)
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 40, 0, 2 * Math.PI);
-            ctx.fillStyle = '#f59e0b'; // Gold
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
-            ctx.fillStyle = '#1e293b'; // Dark
-            ctx.fill();
+          // Slice
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+          ctx.closePath();
+          ctx.fillStyle = colors[index % colors.length];
+          ctx.fill();
 
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
-            ctx.fillStyle = '#d946ef'; // Pink Gem
-            ctx.shadowColor = '#d946ef';
-            ctx.shadowBlur = 15;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
+          // Segment Border
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = "rgba(255,255,255,0.1)";
+          ctx.stroke();
 
-        // --- Spin Logic ---
+          // Text
+          ctx.translate(centerX, centerY);
+          ctx.rotate(startAngle + arcSize / 2);
+          ctx.textAlign = "right";
+          ctx.fillStyle = "#fff";
+          ctx.font = "bold 24px Quicksand";
+          ctx.shadowColor = "rgba(0,0,0,0.8)";
+          ctx.shadowBlur = 4;
 
-        spinBtn.addEventListener('click', () => {
-            if (isSpinning) return;
-            if (items.length === 0) {
-                input.focus();
-                playPopSound(); // Error sound reuse
-                return;
-            }
+          let text = item;
+          if (text.length > 18) text = text.substring(0, 16) + "...";
+          ctx.fillText(text, radius - 30, 8);
 
-            initAudio(); 
-            isSpinning = true;
-            spinBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            input.disabled = true;
-            
-            // Random power
-            spinVelocity = Math.random() * 0.3 + 0.5; 
-            lastSegmentIndex = -1;
+          ctx.restore();
         });
 
-        function loop() {
-            if (isSpinning) {
-                currentAngle += spinVelocity;
-                spinVelocity *= spinDeceleration;
+        // Center Hub (Gold & Gem)
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 40, 0, 2 * Math.PI);
+        ctx.fillStyle = "#f59e0b"; // Gold
+        ctx.fill();
 
-                if (currentAngle >= Math.PI * 2) currentAngle -= Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 32, 0, 2 * Math.PI);
+        ctx.fillStyle = "#1e293b"; // Dark
+        ctx.fill();
 
-                // Determine current index at top (3PI/2)
-                const numSegments = items.length || 1;
-                const arcSize = (Math.PI * 2) / numSegments;
-                const rotation = currentAngle % (Math.PI * 2);
-                const pointerTheta = (3 * Math.PI / 2) - rotation; 
-                
-                let normalizedTheta = pointerTheta;
-                while (normalizedTheta < 0) normalizedTheta += Math.PI * 2;
-                while (normalizedTheta >= Math.PI * 2) normalizedTheta -= Math.PI * 2;
-                
-                const currentIndex = Math.floor(normalizedTheta / arcSize);
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
+        ctx.fillStyle = "#d946ef"; // Pink Gem
+        ctx.shadowColor = "#d946ef";
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
 
-                // Trigger Tick & Kicker Animation
-                if (currentIndex !== lastSegmentIndex && spinVelocity > 0.01) {
-                    playTick();
-                    lastSegmentIndex = currentIndex;
-                    // Kick pointer
-                    pointerAngle = -25; 
-                }
+      // --- Spin Logic ---
 
-                // Stop condition
-                if (spinVelocity < 0.0015) {
-                    isSpinning = false;
-                    spinVelocity = 0;
-                    finishSpin(currentIndex);
-                }
-            }
-
-            // Animate Pointer Recovery
-            pointerAngle *= 0.9; // return to 0
-            pointer.style.transform = `translateX(-50%) rotate(${pointerAngle}deg)`;
-
-            drawWheel();
-            updateAndDrawParticles();
-            requestAnimationFrame(loop);
+      spinBtn.addEventListener("click", () => {
+        if (isSpinning) return;
+        if (items.length === 0) {
+          input.focus();
+          playPopSound(); // Error sound reuse
+          return;
         }
 
-        function finishSpin(winnerIndex) {
-            input.disabled = false;
-            spinBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            
-            const winner = items[winnerIndex];
-            
-            // Battle Mode Logic: Remove winner
-            if (battleMode.checked) {
-                items.splice(winnerIndex, 1);
-                renderList();
-            }
+        initAudio();
+        isSpinning = true;
+        spinBtn.classList.add("opacity-50", "cursor-not-allowed");
+        input.disabled = true;
 
-            playWinSound();
-            spawnParticles();
-            
-            setTimeout(() => {
-                winnerText.innerText = winner;
-                modal.classList.remove('hidden');
-                void modal.offsetWidth;
-                modal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-90');
-            }, 500);
+        // Random power
+        spinVelocity = Math.random() * 0.3 + 0.5;
+        lastSegmentIndex = -1;
+      });
+
+      function loop() {
+        if (isSpinning) {
+          currentAngle += spinVelocity;
+          spinVelocity *= spinDeceleration;
+
+          if (currentAngle >= Math.PI * 2) currentAngle -= Math.PI * 2;
+
+          // Determine current index at top (3PI/2)
+          const numSegments = items.length || 1;
+          const arcSize = (Math.PI * 2) / numSegments;
+          const rotation = currentAngle % (Math.PI * 2);
+          const pointerTheta = (3 * Math.PI) / 2 - rotation;
+
+          let normalizedTheta = pointerTheta;
+          while (normalizedTheta < 0) normalizedTheta += Math.PI * 2;
+          while (normalizedTheta >= Math.PI * 2) normalizedTheta -= Math.PI * 2;
+
+          const currentIndex = Math.floor(normalizedTheta / arcSize);
+
+          // Trigger Tick & Kicker Animation
+          if (currentIndex !== lastSegmentIndex && spinVelocity > 0.01) {
+            playTick();
+            lastSegmentIndex = currentIndex;
+            // Kick pointer
+            pointerAngle = -25;
+          }
+
+          // Stop condition
+          if (spinVelocity < 0.0015) {
+            isSpinning = false;
+            spinVelocity = 0;
+            finishSpin(currentIndex);
+          }
         }
 
-        function closeModal() {
-            modal.classList.add('opacity-0');
-            modalContent.classList.add('scale-90');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 500);
+        // Animate Pointer Recovery
+        pointerAngle *= 0.9; // return to 0
+        pointer.style.transform = `translateX(-50%) rotate(${pointerAngle}deg)`;
+
+        drawWheel();
+        updateAndDrawParticles();
+        requestAnimationFrame(loop);
+      }
+
+      function finishSpin(winnerIndex) {
+        input.disabled = false;
+        spinBtn.classList.remove("opacity-50", "cursor-not-allowed");
+
+        const winner = items[winnerIndex];
+
+        // Battle Mode Logic: Remove winner
+        if (battleMode.checked) {
+          items.splice(winnerIndex, 1);
+          renderList();
         }
 
-        // --- Particle System (Confetti) ---
-        let particles = [];
-        const particleColors = ['#F472B6', '#A78BFA', '#34D399', '#FBBF24'];
+        playWinSound();
+        spawnParticles();
 
-        class Particle {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 6 + 2;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed;
-                this.life = 1.0;
-                this.decay = Math.random() * 0.01 + 0.01;
-                this.color = particleColors[Math.floor(Math.random() * particleColors.length)];
-                this.size = Math.random() * 4 + 2;
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life -= this.decay;
-                this.vy += 0.15; // Gravity
-                this.vx *= 0.95; // Air resistance
-            }
-            draw(ctx) {
-                ctx.globalAlpha = this.life;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.rect(this.x, this.y, this.size, this.size); // Squares look more like confetti
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
-            }
+        setTimeout(() => {
+          winnerText.innerText = winner;
+          modal.classList.remove("hidden");
+          void modal.offsetWidth;
+          modal.classList.remove("opacity-0");
+          modalContent.classList.remove("scale-90");
+        }, 500);
+      }
+
+      function closeModal() {
+        modal.classList.add("opacity-0");
+        modalContent.classList.add("scale-90");
+        setTimeout(() => {
+          modal.classList.add("hidden");
+        }, 500);
+      }
+
+      // --- Particle System (Confetti) ---
+      let particles = [];
+      const particleColors = ["#F472B6", "#A78BFA", "#34D399", "#FBBF24"];
+
+      class Particle {
+        constructor(x, y) {
+          this.x = x;
+          this.y = y;
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 6 + 2;
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed;
+          this.life = 1.0;
+          this.decay = Math.random() * 0.01 + 0.01;
+          this.color =
+            particleColors[Math.floor(Math.random() * particleColors.length)];
+          this.size = Math.random() * 4 + 2;
         }
-
-        function spawnParticles() {
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            for (let i = 0; i < 80; i++) {
-                particles.push(new Particle(centerX, centerY - 150)); 
-            }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.life -= this.decay;
+          this.vy += 0.15; // Gravity
+          this.vx *= 0.95; // Air resistance
         }
-
-        function updateAndDrawParticles() {
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.update();
-                p.draw(ctx);
-                if (p.life <= 0) particles.splice(i, 1);
-            }
+        draw(ctx) {
+          ctx.globalAlpha = this.life;
+          ctx.fillStyle = this.color;
+          ctx.beginPath();
+          ctx.rect(this.x, this.y, this.size, this.size); // Squares look more like confetti
+          ctx.fill();
+          ctx.globalAlpha = 1.0;
         }
+      }
 
-        // Start
-        init();
+      function spawnParticles() {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        for (let i = 0; i < 80; i++) {
+          particles.push(new Particle(centerX, centerY - 150));
+        }
+      }
+
+      function updateAndDrawParticles() {
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.update();
+          p.draw(ctx);
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+      }
+
+      // Start
+      init();
     </script>
-</body>
+  </body>
 </html>
