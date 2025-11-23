@@ -3,8 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mystic Decision Wheel</title>
-    <!-- Favicon: A Crystal Ball Emoji embedded as an SVG -->
+
+    <!-- PRIMARY SEO TAGS -->
+    <title>Mystic Decision Wheel | Random Picker & Choice Generator</title>
+    <meta
+      name="description"
+      content="A free, magical spinning wheel to help you make decisions. Enter your choices, spin the wheel, and let fate decide. Features battle royale mode, custom lists, and procedurally generated sounds."
+    />
+    <meta
+      name="keywords"
+      content="spinning wheel, decision maker, random picker, wheel of fortune, yes no generator, online spinner, choice generator"
+    />
+    <meta name="author" content="Mystic Wheel" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- OPEN GRAPH / SOCIAL MEDIA TAGS (Makes it look good on Discord/Twitter) -->
+    <meta property="og:title" content="Mystic Decision Wheel" />
+    <meta
+      property="og:description"
+      content="Can't decide? Let the cosmos choose for you. A physics-based, magical spinning wheel for food, games, and tough choices."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://emojicdn.elk.sh/🔮" />
+    <!-- Uses the emoji as a placeholder image -->
+    <meta
+      property="og:url"
+      content="https://ahmadalmezaal.github.io/mystic-wheel/"
+    />
+    <!-- Update this to your actual URL later -->
+
+    <!-- Favicon -->
     <link
       rel="icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔮</text></svg>"
@@ -126,7 +154,9 @@
       >
         Mystic Wheel
       </h1>
-      <p class="text-slate-400 italic">The cosmos knows the answer...</p>
+      <h2 class="text-slate-400 italic text-lg">
+        The Ultimate Random Decision Maker
+      </h2>
     </header>
 
     <main
@@ -139,24 +169,28 @@
         <!-- Presets -->
         <div class="flex gap-2 justify-center mb-2 overflow-x-auto pb-2">
           <button
+            aria-label="Load Food Preset"
             onclick="loadPreset('food')"
             class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
           >
             🍔 Food
           </button>
           <button
+            aria-label="Load Yes No Preset"
             onclick="loadPreset('yesno')"
             class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
           >
             🔮 Yes/No
           </button>
           <button
+            aria-label="Load Dice Preset"
             onclick="loadPreset('dice')"
             class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
           >
             🎲 D20
           </button>
           <button
+            aria-label="Load Activity Preset"
             onclick="loadPreset('activity')"
             class="px-3 py-1 text-xs rounded-full bg-slate-700 hover:bg-purple-600 transition text-white border border-slate-600 whitespace-nowrap"
           >
@@ -169,11 +203,12 @@
             type="text"
             id="new-choice"
             class="w-full bg-slate-800/50 border border-slate-600 rounded-xl p-4 pr-12 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-bold"
-            placeholder="Type & hit Enter..."
+            placeholder="Type a choice & hit Enter..."
             onkeydown="handleInput(event)"
           />
           <button
             onclick="addChoice()"
+            aria-label="Add Choice"
             class="absolute right-2 top-2 bottom-2 px-3 text-purple-400 hover:text-white hover:bg-purple-600 rounded-lg transition"
           >
             <i class="fas fa-plus"></i>
@@ -193,7 +228,7 @@
           class="flex items-center justify-between bg-slate-800/40 p-3 rounded-lg"
         >
           <span class="text-sm text-slate-300"
-            ><i class="fas fa-skull mr-2"></i>Remove Winner</span
+            ><i class="fas fa-skull mr-2"></i>Battle Royale Mode</span
           >
           <div
             class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
@@ -214,12 +249,14 @@
         <div class="flex gap-2 mt-auto pt-4">
           <button
             onclick="clearChoices()"
+            aria-label="Clear All"
             class="px-4 py-3 rounded-lg border border-slate-500 hover:bg-red-500/20 hover:border-red-400 text-slate-300 hover:text-red-200 transition-colors"
           >
             <i class="fas fa-trash"></i>
           </button>
           <button
             id="spin-btn"
+            aria-label="Spin the Wheel"
             class="btn-magic flex-grow py-3 rounded-lg font-bold text-white text-lg tracking-wider uppercase shadow-lg flex items-center justify-center gap-2"
           >
             <span>Cast to Fate</span>
@@ -274,34 +311,37 @@
       </div>
     </main>
 
-    <!-- Instructional / Lore Footer -->
+    <!-- Instructional / Lore Footer (Great for SEO Content) -->
     <section
       class="max-w-4xl mx-auto mt-12 mb-8 px-6 text-center text-slate-400"
     >
       <div class="grid md:grid-cols-3 gap-6">
         <div class="glass-panel p-4 rounded-xl">
-          <h3 class="text-purple-300 mb-2 magic-font">The Oracle</h3>
+          <h3 class="text-purple-300 mb-2 magic-font">Free Random Picker</h3>
           <p class="text-sm">
             Unsure of your path? Enter your choices above. The wheel spins with
-            the weight of destiny, governed by physics and randomness.
+            the weight of destiny, governed by physics and true randomness.
           </p>
         </div>
         <div class="glass-panel p-4 rounded-xl">
-          <h3 class="text-purple-300 mb-2 magic-font">Battle Mode</h3>
+          <h3 class="text-purple-300 mb-2 magic-font">Elimination Mode</h3>
           <p class="text-sm">
-            Enable "Remove Winner" to play a game of elimination. The chosen
-            fate vanishes, leaving the survivors to spin again.
+            Enable "Battle Royale" to play a game of elimination. The chosen
+            fate vanishes, perfect for narrowing down food choices or raffle
+            winners.
           </p>
         </div>
         <div class="glass-panel p-4 rounded-xl">
-          <h3 class="text-purple-300 mb-2 magic-font">Presets</h3>
+          <h3 class="text-purple-300 mb-2 magic-font">Quick Decisions</h3>
           <p class="text-sm">
-            Short on time? Use the magical runes (buttons) above the input box
-            to instantly load common dilemmas.
+            Short on time? Use the magical runes (buttons) to instantly load
+            presets for Dinner, Yes/No Oracles, and D20 dice rolls.
           </p>
         </div>
       </div>
-      <p class="mt-8 text-xs opacity-50">Crafted with Stardust & Code.</p>
+      <p class="mt-8 text-xs opacity-50">
+        The Mystic Wheel is a free online decision maker tool.
+      </p>
     </section>
 
     <!-- Result Modal -->
