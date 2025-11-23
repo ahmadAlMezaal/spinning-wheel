@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Audio System ---
+  // --- AUDIO SYSTEM (Fixed) ---
   let audioCtx = null;
   function initAudio() {
     try {
@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = audioCtx.currentTime;
 
     if (type === "pop") {
-      // Selection Pop
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.frequency.setValueAtTime(600, now);
@@ -24,49 +23,54 @@ document.addEventListener("DOMContentLoaded", () => {
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(now + 0.1);
+    } else if (type === "tick") {
+      // WHEEL TICK
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.03);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(now + 0.05);
     } else if (type === "coin-toss") {
-      // REALISTIC COIN TOSS (Metallic Ring)
-      // We simulate metal by playing multiple non-harmonic sine waves
-      const frequencies = [1800, 2200, 3500, 4200];
+      // METALLIC RING (Multi-layered)
+      const frequencies = [1600, 2000, 3200, 4000];
       frequencies.forEach((freq, i) => {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = "sine";
         osc.frequency.setValueAtTime(freq, now);
-
-        // Slight detuning for realism
         if (i % 2 === 0)
-          osc.frequency.linearRampToValueAtTime(freq - 50, now + 1.5);
+          osc.frequency.linearRampToValueAtTime(freq - 50, now + 1.0);
 
-        // Sharp attack, long metallic ringing tail
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.05, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5); // Ring for 1.5s
+        gain.gain.linearRampToValueAtTime(0.04, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(now + 1.5);
+        osc.stop(now + 1.2);
       });
     } else if (type === "coin-land") {
-      // COIN CATCH (The Thud)
+      // THUD (Catch)
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      // Low frequency thud
       osc.type = "triangle";
       osc.frequency.setValueAtTime(120, now);
       osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-
-      // Very short burst
       gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(now + 0.1);
     } else if (type === "win") {
-      // Wheel Win (Magical Chime)
+      // WIN CHIME
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "triangle";
@@ -92,20 +96,16 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   function switchMode(mode) {
-    // Hide all
     Object.values(views).forEach((el) => el.classList.add("hidden"));
     Object.values(tabs).forEach((el) => el.classList.remove("active"));
-
-    // Show active
     views[mode].classList.remove("hidden");
     tabs[mode].classList.add("active");
-
     if (mode === "wheel") resizeCanvas();
   }
   tabs.wheel.onclick = () => switchMode("wheel");
   tabs.coin.onclick = () => switchMode("coin");
 
-  // --- COIN LOGIC (Real Physics) ---
+  // --- COIN LOGIC ---
   const coinJumpWrapper = document.getElementById("coin-jump-wrapper");
   const coinEl = document.getElementById("coin");
   const coinShadow = document.getElementById("coin-shadow");
@@ -125,41 +125,31 @@ document.addEventListener("DOMContentLoaded", () => {
     flipBtn.classList.add("opacity-50");
     coinResult.classList.add("opacity-0");
 
-    // Play the new Metallic Ring Sound
     playSound("coin-toss");
 
-    // 1. Determine Winner
     const isHeads = Math.random() < 0.5;
-
-    // 2. Calculate Spins (Rotate X for vertical roll)
-    // We want at least 5 full rotations (1800deg) + landing angle
     const extraSpins = 1800;
     const targetAngle = isHeads ? 0 : 180;
 
     let nextRotation = currentRotation + extraSpins;
-
-    // Adjust to land exactly on 0 (Heads) or 180 (Tails)
     const mod = nextRotation % 360;
     let adjustment = targetAngle - mod;
     if (adjustment < 0) adjustment += 360;
 
     currentRotation = nextRotation + adjustment;
 
-    // 3. Apply Animations
-    // A) The Spin
+    // Animations
+    coinEl.style.transition = "transform 2.5s cubic-bezier(0.25, 1, 0.5, 1)";
     coinEl.style.transform = `rotateX(${currentRotation}deg)`;
 
-    // B) The Toss (Jump)
     coinJumpWrapper.classList.remove("animate-toss");
-    void coinJumpWrapper.offsetWidth; // Trigger reflow
+    void coinJumpWrapper.offsetWidth;
     coinJumpWrapper.classList.add("animate-toss");
 
-    // C) The Shadow
     coinShadow.classList.remove("animate-shadow");
     void coinShadow.offsetWidth;
     coinShadow.classList.add("animate-shadow");
 
-    // 4. Finish
     setTimeout(() => {
       isFlipping = false;
       flipBtn.disabled = false;
@@ -171,22 +161,25 @@ document.addEventListener("DOMContentLoaded", () => {
       coinResult.textContent = text;
       coinResult.classList.remove("opacity-0");
 
-      // Play the new Thud Sound (Catch)
       playSound("coin-land");
-    }, 2500); // Match CSS animation duration
+    }, 2500);
   };
 
-  // --- WHEEL LOGIC ---
+  // --- WHEEL LOGIC (Fixed Physics) ---
   const canvas = document.getElementById("wheel");
   const ctx = canvas ? canvas.getContext("2d") : null;
+  const pointer = document.getElementById("pointer");
   let items = ["Pizza", "Sushi", "Burgers", "Tacos"];
-  let wheelAngle = 0;
-  let spinning = false;
 
-  // Canvas Size
-  function resizeCanvas() {
-    // Canvas is fixed size in CSS, internal res is 600
-  }
+  // Wheel State
+  let currentAngle = 0;
+  let isSpinning = false;
+  let spinVelocity = 0;
+  let spinDeceleration = 0.99;
+  let lastSegmentIndex = -1;
+  let pointerAngle = 0;
+
+  function resizeCanvas() {} // CSS handles size
 
   function drawWheel() {
     if (!ctx) return;
@@ -205,7 +198,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     ctx.clearRect(0, 0, 600, 600);
 
-    // Border
     ctx.beginPath();
     ctx.arc(cx, cy, r + 10, 0, Math.PI * 2);
     ctx.fillStyle = "#1e293b";
@@ -215,17 +207,19 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.stroke();
 
     items.forEach((item, i) => {
-      const ang = wheelAngle + i * arc;
+      const startAngle = currentAngle + i * arc;
+      const endAngle = startAngle + arc;
+
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, ang, ang + arc);
+      ctx.arc(cx, cy, r, startAngle, endAngle);
       ctx.fillStyle = colors[i % colors.length];
       ctx.fill();
       ctx.stroke();
 
       ctx.save();
       ctx.translate(cx, cy);
-      ctx.rotate(ang + arc / 2);
+      ctx.rotate(startAngle + arc / 2);
       ctx.textAlign = "right";
       ctx.fillStyle = "#fff";
       ctx.font = "bold 24px Quicksand";
@@ -233,14 +227,76 @@ document.addEventListener("DOMContentLoaded", () => {
       ctx.restore();
     });
 
-    // Center
     ctx.beginPath();
     ctx.arc(cx, cy, 30, 0, Math.PI * 2);
     ctx.fillStyle = "#fbbf24";
     ctx.fill();
   }
 
-  // Wheel Events
+  // The Physics Loop
+  function loop() {
+    if (isSpinning) {
+      currentAngle += spinVelocity;
+      spinVelocity *= spinDeceleration;
+      if (currentAngle >= Math.PI * 2) currentAngle -= Math.PI * 2;
+
+      // Determine which segment is at the TOP (3*PI/2 or 270 deg)
+      const numSegments = items.length || 1;
+      const arcSize = (Math.PI * 2) / numSegments;
+
+      // The pointer is fixed at top. We calculate which segment is passing it.
+      // To simplify: rotate wheel logic in reverse to find index
+      const rotation = currentAngle % (Math.PI * 2);
+      const pointerTheta = (3 * Math.PI) / 2 - rotation;
+
+      let normalizedTheta = pointerTheta;
+      while (normalizedTheta < 0) normalizedTheta += Math.PI * 2;
+
+      const currentIndex = Math.floor(normalizedTheta / arcSize) % numSegments;
+
+      // Trigger Tick & Kick if index changes
+      if (currentIndex !== lastSegmentIndex && spinVelocity > 0.01) {
+        playSound("tick");
+        lastSegmentIndex = currentIndex;
+        pointerAngle = -25; // Kick back
+      }
+
+      // Stop Condition
+      if (spinVelocity < 0.0015) {
+        isSpinning = false;
+        spinVelocity = 0;
+        finishSpin(currentIndex);
+      }
+    }
+
+    // Animate Pointer Recovery
+    pointerAngle *= 0.9;
+    pointer.style.transform = `translateX(-50%) rotate(${pointerAngle}deg)`;
+
+    drawWheel();
+    requestAnimationFrame(loop);
+  }
+
+  function finishSpin(winnerIndex) {
+    const winner = items[winnerIndex];
+    playSound("win");
+
+    const modal = document.getElementById("result-modal");
+    modal.classList.remove("hidden");
+    setTimeout(() => modal.classList.remove("opacity-0"), 10);
+    document.getElementById("winner-text").innerText = winner;
+  }
+
+  // Wheel Interaction
+  document.getElementById("spin-btn").onclick = () => {
+    if (isSpinning || items.length === 0) return;
+    initAudio();
+    isSpinning = true;
+    spinVelocity = Math.random() * 0.3 + 0.5; // Initial Kick
+    lastSegmentIndex = -1;
+  };
+
+  // --- List Management ---
   const input = document.getElementById("new-choice");
   const list = document.getElementById("choice-list");
 
@@ -252,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "bg-slate-700 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2";
       chip.innerHTML = `<span>${item}</span><i class="fas fa-times cursor-pointer hover:text-red-400"></i>`;
       chip.querySelector("i").onclick = () => {
-        if (spinning) return;
+        if (isSpinning) return;
         items.splice(i, 1);
         updateList();
         drawWheel();
@@ -261,9 +317,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     drawWheel();
   }
-
   document.getElementById("btn-add").onclick = () => {
-    if (input.value && !spinning) {
+    if (input.value && !isSpinning) {
       items.push(input.value);
       input.value = "";
       updateList();
@@ -271,16 +326,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
   document.getElementById("btn-clear").onclick = () => {
-    if (!spinning) {
+    if (!isSpinning) {
       items = [];
       updateList();
     }
   };
-
-  // Presets
   document.querySelectorAll(".preset-btn").forEach((btn) => {
     btn.onclick = () => {
-      if (spinning) return;
+      if (isSpinning) return;
       const t = btn.dataset.type;
       if (t === "food") items = ["Pizza", "Sushi", "Burgers", "Salad"];
       if (t === "yesno") items = ["Yes", "No", "Maybe"];
@@ -310,39 +363,15 @@ document.addEventListener("DOMContentLoaded", () => {
       updateList();
     };
   });
-
-  // Spin Animation
-  document.getElementById("spin-btn").onclick = () => {
-    if (spinning || items.length === 0) return;
-    initAudio();
-    spinning = true;
-    let vel = Math.random() * 0.5 + 0.5;
-
-    function animate() {
-      wheelAngle += vel;
-      vel *= 0.99; // Friction
-      drawWheel();
-      if (vel > 0.002) requestAnimationFrame(animate);
-      else {
-        spinning = false;
-        playSound("win");
-        const modal = document.getElementById("result-modal");
-        modal.classList.remove("hidden");
-        setTimeout(() => modal.classList.remove("opacity-0"), 10);
-        document.getElementById("winner-text").innerText = "Destiny Spoken";
-      }
-    }
-    animate();
-  };
-
   document.getElementById("btn-close-modal").onclick = () => {
     const modal = document.getElementById("result-modal");
     modal.classList.add("opacity-0");
     setTimeout(() => modal.classList.add("hidden"), 500);
   };
 
-  // Init
+  // Start
   if (canvas) {
     updateList();
+    loop();
   }
 });
