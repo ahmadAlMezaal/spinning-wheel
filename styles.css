@@ -1,0 +1,173 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Quicksand:wght@400;600&display=swap");
+
+body {
+  font-family: "Quicksand", sans-serif;
+  background-color: #0f172a;
+  background-image: radial-gradient(
+      at 0% 0%,
+      rgba(76, 29, 149, 0.3) 0px,
+      transparent 50%
+    ),
+    radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.3) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.3) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: #e2e8f0;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+.magic-font {
+  font-family: "Cinzel", serif;
+}
+
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Mode Switcher Styles --- */
+.nav-btn {
+  position: relative;
+  transition: all 0.3s ease;
+}
+.nav-btn.active {
+  color: #fff;
+  background: rgba(139, 92, 246, 0.3);
+  border-color: #a855f7;
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+}
+.nav-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: #a855f7;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #a855f7;
+}
+
+/* --- COIN STYLES (UPDATED FOR VERTICAL FLIP) --- */
+.coin-wrapper {
+  perspective: 1000px;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+}
+
+.coin {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.coin-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  border: 4px solid #fbbf24;
+  box-shadow: 0 0 30px rgba(251, 191, 36, 0.4),
+    inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Front: Sun / Heads - Initial State */
+.coin-front {
+  background: radial-gradient(circle at 30% 30%, #fcd34d, #b45309);
+  color: #78350f;
+  transform: rotateX(0deg);
+}
+
+/* Back: Moon / Tails - Initial State is flipped vertically */
+.coin-back {
+  background: radial-gradient(circle at 30% 30%, #94a3b8, #334155);
+  color: #e2e8f0;
+  border-color: #94a3b8;
+  transform: rotateX(180deg);
+}
+
+/* --- Utility --- */
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Standard Magic Button */
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.8),
+      0 0 5px rgba(255, 255, 255, 0.5);
+  }
+}
+.btn-magic {
+  background: linear-gradient(45deg, #7c3aed, #db2777);
+  transition: all 0.3s ease;
+  animation: pulse-glow 3s infinite;
+}
+.btn-magic:hover {
+  transform: scale(1.02) translateY(-1px);
+  filter: brightness(1.2);
+}
+.btn-magic:active {
+  transform: scale(0.98);
+}
+
+/* Wheel specifics */
+#canvas-container {
+  filter: drop-shadow(0 0 20px rgba(124, 58, 237, 0.3));
+}
+.choice-chip {
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.toggle-checkbox:checked {
+  right: 0;
+  border-color: #a855f7;
+}
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #a855f7;
+}
+.pointer-wrapper {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+  transform-origin: 50% 20px;
+}
