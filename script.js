@@ -1,5 +1,25 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- AUDIO SYSTEM (Fixed) ---
+  const apiKey = ""; // Gemini Key handled by environment
+  async function callGemini(prompt) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+      const data = await response.json();
+      return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+      return "The stars are cloudy today... try again later.";
+    }
+  }
+
+  // --- AUDIO ---
   let audioCtx = null;
   function initAudio() {
     try {
@@ -7,94 +27,52 @@ document.addEventListener("DOMContentLoaded", () => {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     } catch (e) {}
   }
-
   function playSound(type) {
     if (!audioCtx) return;
     const now = audioCtx.currentTime;
-
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
     if (type === "pop") {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
       osc.frequency.setValueAtTime(600, now);
       osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
       gain.gain.setValueAtTime(0.05, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(now + 0.1);
     } else if (type === "tick") {
-      // WHEEL TICK
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
       osc.type = "triangle";
       osc.frequency.setValueAtTime(150, now);
       osc.frequency.exponentialRampToValueAtTime(40, now + 0.03);
       gain.gain.setValueAtTime(0.1, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(now + 0.05);
-    } else if (type === "coin-toss") {
-      // METALLIC RING (Multi-layered)
-      const frequencies = [1600, 2000, 3200, 4000];
-      frequencies.forEach((freq, i) => {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(freq, now);
-        if (i % 2 === 0)
-          osc.frequency.linearRampToValueAtTime(freq - 50, now + 1.0);
-
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.04, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(now + 1.2);
-      });
-    } else if (type === "coin-land") {
-      // THUD (Catch)
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(120, now);
-      osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(now + 0.1);
+    } else if (type === "shake") {
+      osc.type = "square";
+      osc.frequency.setValueAtTime(80, now);
+      osc.frequency.linearRampToValueAtTime(60, now + 0.5);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.linearRampToValueAtTime(0, now + 0.5);
     } else if (type === "win") {
-      // WIN CHIME
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
       osc.type = "triangle";
       osc.frequency.setValueAtTime(440, now);
       osc.frequency.linearRampToValueAtTime(880, now + 0.1);
       gain.gain.setValueAtTime(0.1, now);
       gain.gain.linearRampToValueAtTime(0, now + 1.0);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(now + 2);
     }
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(now + 1);
   }
 
-  // --- Navigation ---
+  // --- NAV ---
   const views = {
     wheel: document.getElementById("view-wheel"),
     coin: document.getElementById("view-coin"),
+    ball: document.getElementById("view-ball"),
   };
   const tabs = {
     wheel: document.getElementById("tab-wheel"),
     coin: document.getElementById("tab-coin"),
+    ball: document.getElementById("tab-ball"),
   };
-
   function switchMode(mode) {
     Object.values(views).forEach((el) => el.classList.add("hidden"));
     Object.values(tabs).forEach((el) => el.classList.remove("active"));
@@ -104,83 +82,42 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   tabs.wheel.onclick = () => switchMode("wheel");
   tabs.coin.onclick = () => switchMode("coin");
+  tabs.ball.onclick = () => switchMode("ball");
 
-  // --- COIN LOGIC ---
-  const coinJumpWrapper = document.getElementById("coin-jump-wrapper");
-  const coinEl = document.getElementById("coin");
-  const coinShadow = document.getElementById("coin-shadow");
-  const coinResult = document.getElementById("coin-result");
-  const flipBtn = document.getElementById("flip-btn");
-  const inputHeads = document.getElementById("input-heads");
-  const inputTails = document.getElementById("input-tails");
+  // --- AI ---
+  const btnAi = document.getElementById("btn-ai-generate");
+  const aiInput = document.getElementById("ai-prompt");
+  if (btnAi)
+    btnAi.onclick = async () => {
+      if (!aiInput.value.trim()) return;
+      const ogHtml = btnAi.innerHTML;
+      btnAi.innerHTML = '<div class="ai-spinner"></div>';
+      btnAi.disabled = true;
+      const res = await callGemini(
+        `Creative list of 6 options for: '${aiInput.value}'. Comma separated. No numbering.`
+      );
+      if (res) {
+        items = res.split(",").map((s) => s.trim());
+        updateList();
+        playSound("win");
+      }
+      btnAi.innerHTML = ogHtml;
+      btnAi.disabled = false;
+    };
 
-  let currentRotation = 0;
-  let isFlipping = false;
-
-  flipBtn.onclick = () => {
-    if (isFlipping) return;
-    initAudio();
-    isFlipping = true;
-    flipBtn.disabled = true;
-    flipBtn.classList.add("opacity-50");
-    coinResult.classList.add("opacity-0");
-
-    playSound("coin-toss");
-
-    const isHeads = Math.random() < 0.5;
-    const extraSpins = 1800;
-    const targetAngle = isHeads ? 0 : 180;
-
-    let nextRotation = currentRotation + extraSpins;
-    const mod = nextRotation % 360;
-    let adjustment = targetAngle - mod;
-    if (adjustment < 0) adjustment += 360;
-
-    currentRotation = nextRotation + adjustment;
-
-    // Animations
-    coinEl.style.transition = "transform 2.5s cubic-bezier(0.25, 1, 0.5, 1)";
-    coinEl.style.transform = `rotateX(${currentRotation}deg)`;
-
-    coinJumpWrapper.classList.remove("animate-toss");
-    void coinJumpWrapper.offsetWidth;
-    coinJumpWrapper.classList.add("animate-toss");
-
-    coinShadow.classList.remove("animate-shadow");
-    void coinShadow.offsetWidth;
-    coinShadow.classList.add("animate-shadow");
-
-    setTimeout(() => {
-      isFlipping = false;
-      flipBtn.disabled = false;
-      flipBtn.classList.remove("opacity-50");
-
-      const text = isHeads
-        ? inputHeads.value || "Heads"
-        : inputTails.value || "Tails";
-      coinResult.textContent = text;
-      coinResult.classList.remove("opacity-0");
-
-      playSound("coin-land");
-    }, 2500);
-  };
-
-  // --- WHEEL LOGIC (Fixed Physics) ---
+  // --- WHEEL ---
   const canvas = document.getElementById("wheel");
   const ctx = canvas ? canvas.getContext("2d") : null;
   const pointer = document.getElementById("pointer");
   let items = ["Pizza", "Sushi", "Burgers", "Tacos"];
+  let currentAngle = 0,
+    isSpinning = false,
+    spinVel = 0,
+    lastIdx = -1,
+    pointerAng = 0;
+  let lastWinner = "";
 
-  // Wheel State
-  let currentAngle = 0;
-  let isSpinning = false;
-  let spinVelocity = 0;
-  let spinDeceleration = 0.99;
-  let lastSegmentIndex = -1;
-  let pointerAngle = 0;
-
-  function resizeCanvas() {} // CSS handles size
-
+  function resizeCanvas() {}
   function drawWheel() {
     if (!ctx) return;
     const cx = 300,
@@ -195,9 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "#D97706",
       "#E11D48",
     ];
-
     ctx.clearRect(0, 0, 600, 600);
-
     ctx.beginPath();
     ctx.arc(cx, cy, r + 10, 0, Math.PI * 2);
     ctx.fillStyle = "#1e293b";
@@ -205,114 +140,98 @@ document.addEventListener("DOMContentLoaded", () => {
     ctx.lineWidth = 8;
     ctx.strokeStyle = "#fbbf24";
     ctx.stroke();
-
     items.forEach((item, i) => {
-      const startAngle = currentAngle + i * arc;
-      const endAngle = startAngle + arc;
-
+      const ang = currentAngle + i * arc;
       ctx.beginPath();
       ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, startAngle, endAngle);
+      ctx.arc(cx, cy, r, ang, ang + arc);
       ctx.fillStyle = colors[i % colors.length];
       ctx.fill();
       ctx.stroke();
-
       ctx.save();
       ctx.translate(cx, cy);
-      ctx.rotate(startAngle + arc / 2);
+      ctx.rotate(ang + arc / 2);
       ctx.textAlign = "right";
       ctx.fillStyle = "#fff";
       ctx.font = "bold 24px Quicksand";
       ctx.fillText(item, r - 20, 10);
       ctx.restore();
     });
-
     ctx.beginPath();
     ctx.arc(cx, cy, 30, 0, Math.PI * 2);
     ctx.fillStyle = "#fbbf24";
     ctx.fill();
   }
-
-  // The Physics Loop
   function loop() {
     if (isSpinning) {
-      currentAngle += spinVelocity;
-      spinVelocity *= spinDeceleration;
+      currentAngle += spinVel;
+      spinVel *= 0.99;
       if (currentAngle >= Math.PI * 2) currentAngle -= Math.PI * 2;
-
-      // Determine which segment is at the TOP (3*PI/2 or 270 deg)
-      const numSegments = items.length || 1;
-      const arcSize = (Math.PI * 2) / numSegments;
-
-      // The pointer is fixed at top. We calculate which segment is passing it.
-      // To simplify: rotate wheel logic in reverse to find index
-      const rotation = currentAngle % (Math.PI * 2);
-      const pointerTheta = (3 * Math.PI) / 2 - rotation;
-
-      let normalizedTheta = pointerTheta;
-      while (normalizedTheta < 0) normalizedTheta += Math.PI * 2;
-
-      const currentIndex = Math.floor(normalizedTheta / arcSize) % numSegments;
-
-      // Trigger Tick & Kick if index changes
-      if (currentIndex !== lastSegmentIndex && spinVelocity > 0.01) {
+      const num = items.length || 1;
+      const arc = (Math.PI * 2) / num;
+      const rot = currentAngle % (Math.PI * 2);
+      const pTheta = (3 * Math.PI) / 2 - rot;
+      let nTheta = pTheta;
+      while (nTheta < 0) nTheta += Math.PI * 2;
+      const idx = Math.floor(nTheta / arc) % num;
+      if (idx !== lastIdx && spinVel > 0.01) {
         playSound("tick");
-        lastSegmentIndex = currentIndex;
-        pointerAngle = -25; // Kick back
+        lastIdx = idx;
+        pointerAng = -25;
       }
-
-      // Stop Condition
-      if (spinVelocity < 0.0015) {
+      if (spinVel < 0.0015) {
         isSpinning = false;
-        spinVelocity = 0;
-        finishSpin(currentIndex);
+        spinVel = 0;
+        finishSpin(idx);
       }
     }
-
-    // Animate Pointer Recovery
-    pointerAngle *= 0.9;
-    pointer.style.transform = `translateX(-50%) rotate(${pointerAngle}deg)`;
-
+    pointerAng *= 0.9;
+    if (pointer)
+      pointer.style.transform = `translateX(-50%) rotate(${pointerAng}deg)`;
     drawWheel();
     requestAnimationFrame(loop);
   }
-
-  function finishSpin(winnerIndex) {
-    const winner = items[winnerIndex];
+  function finishSpin(idx) {
+    lastWinner = items[idx];
     playSound("win");
-
     const modal = document.getElementById("result-modal");
     modal.classList.remove("hidden");
     setTimeout(() => modal.classList.remove("opacity-0"), 10);
-    document.getElementById("winner-text").innerText = winner;
+    document.getElementById("winner-text").innerText = lastWinner;
   }
-
-  // Wheel Interaction
   document.getElementById("spin-btn").onclick = () => {
     if (isSpinning || items.length === 0) return;
     initAudio();
     isSpinning = true;
-    spinVelocity = Math.random() * 0.3 + 0.5; // Initial Kick
-    lastSegmentIndex = -1;
+    spinVel = Math.random() * 0.3 + 0.5;
+    lastIdx = -1;
   };
 
-  // --- List Management ---
-  const input = document.getElementById("new-choice");
+  // LIST
   const list = document.getElementById("choice-list");
-
+  const input = document.getElementById("new-choice");
   function updateList() {
+    if (!list) return;
     list.innerHTML = "";
     items.forEach((item, i) => {
       const chip = document.createElement("div");
       chip.className =
-        "bg-slate-700 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2";
-      chip.innerHTML = `<span>${item}</span><i class="fas fa-times cursor-pointer hover:text-red-400"></i>`;
-      chip.querySelector("i").onclick = () => {
+        "bg-slate-700 text-white px-3 py-1 rounded-full text-sm flex items-center gap-2 border border-slate-600";
+
+      // FIXED: X button is now a proper button with larger hit area
+      chip.innerHTML = `<span>${item}</span>`;
+      const closeBtn = document.createElement("button");
+      closeBtn.className = "text-slate-400 hover:text-red-400 transition p-1";
+      closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
         if (isSpinning) return;
         items.splice(i, 1);
         updateList();
         drawWheel();
       };
+      chip.appendChild(closeBtn);
+
       list.appendChild(chip);
     });
     drawWheel();
@@ -331,45 +250,166 @@ document.addEventListener("DOMContentLoaded", () => {
       updateList();
     }
   };
-  document.querySelectorAll(".preset-btn").forEach((btn) => {
-    btn.onclick = () => {
-      if (isSpinning) return;
-      const t = btn.dataset.type;
-      if (t === "food") items = ["Pizza", "Sushi", "Burgers", "Salad"];
-      if (t === "yesno") items = ["Yes", "No", "Maybe"];
-      if (t === "dice")
-        items = [
-          "1",
-          "2",
-          "3",
-          "4",
-          "5",
-          "6",
-          "7",
-          "8",
-          "9",
-          "10",
-          "11",
-          "12",
-          "13",
-          "14",
-          "15",
-          "16",
-          "17",
-          "18",
-          "19",
-          "20",
-        ];
-      updateList();
-    };
-  });
   document.getElementById("btn-close-modal").onclick = () => {
-    const modal = document.getElementById("result-modal");
-    modal.classList.add("opacity-0");
-    setTimeout(() => modal.classList.add("hidden"), 500);
+    const m = document.getElementById("result-modal");
+    m.classList.add("opacity-0");
+    setTimeout(() => m.classList.add("hidden"), 500);
   };
 
-  // Start
+  // COIN
+  const coinEl = document.getElementById("coin");
+  const coinJump = document.getElementById("coin-jump-wrapper");
+  const coinShadow = document.getElementById("coin-shadow");
+  const coinResCont = document.getElementById("coin-result-container");
+  const flipBtn = document.getElementById("flip-btn");
+  let coinRot = 0;
+  if (flipBtn)
+    flipBtn.onclick = () => {
+      initAudio();
+      flipBtn.disabled = true;
+      flipBtn.classList.add("opacity-50");
+      coinResCont.classList.add("opacity-0");
+      if (audioCtx) {
+        const now = audioCtx.currentTime;
+        [1600, 2000, 3200, 4000].forEach((f, i) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.frequency.value = f;
+          g.gain.setValueAtTime(0, now);
+          g.gain.linearRampToValueAtTime(0.04, now + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.start();
+          o.stop(now + 1.2);
+        });
+      }
+      const isHeads = Math.random() < 0.5;
+      const target = isHeads ? 0 : 180;
+      let nextRot = coinRot + 1800;
+      const mod = nextRot % 360;
+      let adj = target - mod;
+      if (adj < 0) adj += 360;
+      coinRot = nextRot + adj;
+
+      coinEl.style.transition = "transform 2.5s cubic-bezier(0.25, 1, 0.5, 1)";
+      coinEl.style.transform = `rotateX(${coinRot}deg)`;
+
+      // Re-trigger animations
+      coinJump.classList.remove("animate-toss");
+      void coinJump.offsetWidth;
+      coinJump.classList.add("animate-toss");
+      coinShadow.classList.remove("animate-shadow");
+      void coinShadow.offsetWidth;
+      coinShadow.classList.add("animate-shadow");
+
+      setTimeout(() => {
+        flipBtn.disabled = false;
+        flipBtn.classList.remove("opacity-50");
+        document.getElementById("coin-result").innerText = isHeads
+          ? document.getElementById("input-heads").value || "Heads"
+          : document.getElementById("input-tails").value || "Tails";
+        coinResCont.classList.remove("opacity-0");
+        if (audioCtx) {
+          const n = audioCtx.currentTime;
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.type = "triangle";
+          o.frequency.setValueAtTime(120, n);
+          o.frequency.exponentialRampToValueAtTime(40, n + 0.1);
+          g.gain.setValueAtTime(0.2, n);
+          g.gain.exponentialRampToValueAtTime(0.001, n + 0.1);
+          o.connect(g);
+          g.connect(audioCtx.destination);
+          o.start();
+          o.stop(n + 0.1);
+        }
+
+        // FIXED: Clean up animation classes to prevent auto-replay on tab switch
+        coinJump.classList.remove("animate-toss");
+        coinShadow.classList.remove("animate-shadow");
+      }, 2500);
+    };
+
+  // 8-BALL
+  const ball = document.getElementById("magic-ball");
+  const bTri = document.getElementById("ball-triangle");
+  const bAns = document.getElementById("ball-answer");
+  const shakeBtn = document.getElementById("btn-shake-ball");
+  const ballAnswers = [
+    "Yes",
+    "No",
+    "Maybe",
+    "Ask Later",
+    "Outlook Good",
+    "Doubtful",
+  ];
+  if (shakeBtn)
+    shakeBtn.onclick = () => {
+      initAudio();
+      playSound("shake");
+      document
+        .getElementById("ball-oracle-container")
+        .classList.add("opacity-0");
+      bTri.classList.remove("opacity-100");
+      bTri.classList.add("opacity-0");
+      bTri.style.transform = "translateY(10px)";
+
+      ball.classList.remove("animate-shake");
+      void ball.offsetWidth;
+      ball.classList.add("animate-shake");
+
+      setTimeout(() => {
+        bAns.innerText =
+          ballAnswers[Math.floor(Math.random() * ballAnswers.length)];
+        bTri.classList.remove("opacity-0");
+        bTri.classList.add("opacity-100");
+        bTri.style.transform = "translateY(0)";
+        document
+          .getElementById("ball-oracle-container")
+          .classList.remove("opacity-0");
+        playSound("win");
+
+        // FIXED: Clean up animation class
+        ball.classList.remove("animate-shake");
+      }, 800);
+    };
+
+  // Oracle Logic
+  const oracleModal = document.getElementById("prophecy-modal");
+  async function runOracle(win, ctx) {
+    oracleModal.classList.remove("hidden");
+    setTimeout(() => oracleModal.classList.remove("opacity-0"), 10);
+    document.getElementById("prophecy-text").innerHTML =
+      '<div class="ai-spinner"></div>';
+    const txt = await callGemini(
+      `Mystic fortune teller interpretation. Winner: '${win}'. Context: '${ctx}'. Max 2 sentences. Fun & cryptic.`
+    );
+    document.getElementById("prophecy-text").innerText = txt;
+  }
+  const btnWOracle = document.getElementById("btn-wheel-oracle");
+  if (btnWOracle)
+    btnWOracle.onclick = () =>
+      runOracle(lastWinner, "Wheel spin options: " + items.join(","));
+  const btnCOracle = document.getElementById("btn-coin-oracle");
+  if (btnCOracle)
+    btnCOracle.onclick = () => {
+      const h = document.getElementById("input-heads").value,
+        t = document.getElementById("input-tails").value;
+      runOracle(
+        document.getElementById("coin-result").innerText,
+        `Coin toss ${h} vs ${t}`
+      );
+    };
+  const btnBOracle = document.getElementById("btn-ball-oracle");
+  if (btnBOracle)
+    btnBOracle.onclick = () =>
+      runOracle(bAns.innerText, "Magic 8-ball question");
+  document.getElementById("btn-close-prophecy").onclick = () => {
+    oracleModal.classList.add("opacity-0");
+    setTimeout(() => oracleModal.classList.add("hidden"), 500);
+  };
+
   if (canvas) {
     updateList();
     loop();
