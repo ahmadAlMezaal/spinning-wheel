@@ -1,41 +1,66 @@
+# 🔮 Mystic Decision Tools
 
-# 🔮 Mystic Decision Wheel
-
-A magical, physics-based spinning wheel to help indecisive friends make decisions. Built with modern web technologies and sprinkled with cosmic dust.
+A magical, all-in-one decision-making toolkit to help indecisive friends find their path. Built with modern web technologies, realistic physics, and powered by Google Gemini AI.
 
 ## ✨ Features
 
-Atmospheric Design: Neon glassmorphism aesthetic with deep space backgrounds.
+🛠️ Three Mystical Tools
 
-Physics-Based Spin: The wheel uses ease-out friction and simulated weight for a satisfying feel.
+The Wheel of Fate: A physics-based spinning wheel for multiple choices. Features a "kicking" pointer and battle royale mode (elimination).
 
-Procedural Audio: Generates its own sound effects (ticking, winning chimes) using the Web Audio API—no external MP3s required.
+The Coin of Destiny: A realistic 3D coin toss with vertical flip physics and multi-layered metallic sound effects.
 
-Battle Royale Mode: Optional mode that removes the winning choice after a spin, perfect for narrowing down options.
+The Mystic 8-Ball: A classic fortune-telling ball with a shake animation and floating 3D answer reveal.
 
-Mobile Responsive: Works perfectly on phones and desktops.
+## 🧠 AI-Powered Sorcery (Gemini API)
 
-Zero Dependencies: Built with vanilla HTML5 Canvas and Tailwind CSS (via CDN). No build step required.
+The Sorcerer's List (Auto-Fill): Stuck on ideas? Type a topic (e.g., "Sci-Fi Movies"), and the AI instantly generates 6 creative options for the wheel.
+
+The Oracle's Prophecy: After any result (wheel, coin, or ball), ask the Oracle why fate chose that option. The AI provides a cryptic, fun, and cosmic interpretation of the result.
+
+## 🎨 Atmospheric Design
+
+Deep Space Aesthetic: Neon glassmorphism UI with a starry, animated background.
+
+Procedural Audio: Generates its own sound effects (ticking, ringing, thuds, magical chimes) using the Web Audio API—no external MP3s required.
+
+Mobile Responsive: Works perfectly on phones and desktops with touch-friendly interactions.
 
 ## 🚀 How to Use
 
-Enter Choices: Type your options into the input box and hit Enter. They appear as magical chips.
+The Wheel
 
-Use Presets: Click the chip buttons (Food, Yes/No, Dice) to instantly load common scenarios.
+Enter Choices: Type options manually or use the Lightning Bolt ⚡ button to let AI generate them for you.
 
-Spin: Click "Cast to Fate" to spin the wheel.
+Spin: Click "Cast to Fate".
 
-Battle Mode: Toggle the skull switch to remove the winner after the spin.
+Battle Mode: Toggle the skull switch to remove the winner after the spin (great for narrowing down dinner options).
+
+The Coin
+
+Customize: Rename "Heads" and "Tails" if you want (e.g., "Pizza" vs "Burgers").
+
+Flip: Click to toss the coin. It uses 3D rotation physics to land on a random side.
+
+The 8-Ball
+
+Focus: Concentrate on a Yes/No question.
+
+Shake: Click to shake the ball and reveal your destiny.
 
 ## 🛠️ Tech Stack
 
-HTML5 Canvas: For the wheel rendering and high-performance animation.
+HTML5 Canvas: High-performance rendering for the wheel.
 
-Web Audio API: For procedural sound generation.
+CSS3 3D Transforms: For the realistic coin flip and 8-ball geometry.
 
-Tailwind CSS: For rapid, responsive UI styling.
+Web Audio API: For procedural sound generation (synced with physics).
 
-Vanilla JavaScript: No frameworks, just pure logic.
+Google Gemini API: For LLM-based list generation and fortune telling.
+
+Tailwind CSS: For rapid, responsive glassmorphism styling.
+
+Vanilla JavaScript: No frameworks, just pure, lightweight logic.
 
 ## 📦 Deployment
 
